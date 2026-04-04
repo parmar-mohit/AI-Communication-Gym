@@ -3,6 +3,7 @@ logs/*
 videos/*
 transcript/*
 .metadata/*
-
-Message Format
-documents
+backend/.settings/*
+backend/.classpath
+backend/.project
+backend/target

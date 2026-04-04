@@ -1,8 +1,0 @@
-{
-	"event": {
-		"contentEnd": {
-			"promptName": "${promptName}", 
-			"contentName": "${contentName}" 
-		}
-	}
-}

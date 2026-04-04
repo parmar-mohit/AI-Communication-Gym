@@ -17,8 +17,8 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class S3Service {
 	private S3Client s3Client;
 	
-	private static final String SESSION_VIDEO_BUCKET = "ai-communication-session-video";
-	private static final String SESSION_TRANSCRIPT_BUCKET = "ai-communication-session-transcript";
+	private static final String SESSION_VIDEO_BUCKET = System.getenv("S3_SESSION_VIDEO_BUCKET_ID");
+	private static final String SESSION_TRANSCRIPT_BUCKET = System.getenv("S3_SESSION_TRANSCRIPT_BUCKET_ID");
 	
 	private static final Logger logger = LoggerFactory.getLogger(S3Service.class);
 	
