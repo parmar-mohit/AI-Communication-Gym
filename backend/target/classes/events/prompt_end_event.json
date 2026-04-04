@@ -1,0 +1,7 @@
+{
+    "event": {
+        "promptEnd": {
+            "promptName": "${promptName}"
+        }
+    }
+}

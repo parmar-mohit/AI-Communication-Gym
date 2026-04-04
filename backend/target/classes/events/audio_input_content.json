@@ -1,0 +1,9 @@
+{
+    "event": {
+        "audioInput": {
+            "promptName": "${promptName}",
+            "contentName": "${contentName}",
+            "content": "${audio}"
+        }
+    }
+}

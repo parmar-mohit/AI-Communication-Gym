@@ -1,0 +1,9 @@
+{
+	"event": {
+		"textInput": {
+			"promptName": "${promptName}",
+			"contentName": "${contentName}",
+			"content": "${text}"
+		}
+	}
+}

@@ -1,0 +1,8 @@
+# Runtime Data
+logs/*
+videos/*
+transcript/*
+.metadata/*
+
+Message Format
+documents

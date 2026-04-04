@@ -1,0 +1,14 @@
+{
+    "event": {
+        "contentStart": {
+            "promptName": "${promptName}",
+            "contentName": "${contentName}",
+            "type": "TEXT",
+            "interactive": false,
+            "role": "${role}",
+            "textInputConfiguration": {
+                "mediaType": "text/plain"
+            }
+        }
+    }
+}
