@@ -23,3 +23,8 @@ This document explains the step-by-step lifecycle of a single 5-minute session i
 - **Transcript Storage**: The total recorded transcript is uploaded to your `S3_SESSION_TRANSCRIPT_BUCKET_ID`.
 - **Evaluation Generation**: A final query runs against the AI model parsing the full transcript to generate constructive feedback on strengths, weaknesses, and actionable insights.
 - **Report Dispatch**: The JSON evaluation report is dispatched to the client, prompting the frontend to transition and render the final Report Dashboard UI.
+
+## 5. Local Storage Maintenance
+- **Daily Cronjob**: To ensure the backend server does not exhaust its local storage space, a scheduled cronjob runs every day at `00:00` (midnight).
+- **Cleanup Criteria**: This job systematically deletes all temporary local files (logs, temp videos, transcripts, images) with a creation or last modified date exceeding 24 hours.
+- **S3 Integrity**: This maintenance affects **local files only**. All session data securely uploaded to AWS S3 remains preserved and untouched by this scheduled task.

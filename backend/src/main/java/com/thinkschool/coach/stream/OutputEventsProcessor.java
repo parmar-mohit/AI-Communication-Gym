@@ -68,7 +68,7 @@ public class OutputEventsProcessor implements OutputFromBedrockStream {
 				}else {
 					// Text Transription Output
 					if( nextContentType == ContentType.TEXT && event.has(JsonConstants.TEXT_OUTPUT) ) {
-						String transcribedText = event.get(JsonConstants.TEXT_OUTPUT).get(JsonConstants.CONTENT).asString();
+						String transcribedText = event.get(JsonConstants.TEXT_OUTPUT).get(JsonConstants.CONTENT).asString().trim();
 						
 						if( transcribedText.equals( "{ \"interrupted\" : true }" ) ){ // Do not send interrupt status
 							return;

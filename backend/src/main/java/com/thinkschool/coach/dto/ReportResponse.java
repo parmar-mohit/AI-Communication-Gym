@@ -3,6 +3,7 @@ package com.thinkschool.coach.dto;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.thinkschool.coach.model.ReportMetrics;
 
 public class ReportResponse {
 	
@@ -15,6 +16,8 @@ public class ReportResponse {
 	
 	@JsonProperty("overall-performance")
 	private String overallPerformance;
+	
+	private ReportMetrics reportMetrics;
 
 	public String getSessionId() {
 		return sessionId;
@@ -56,4 +59,11 @@ public class ReportResponse {
 		this.overallPerformance = overallPerformance;
 	}
 
+	public ReportMetrics getReportMetrics() {
+		return reportMetrics;
+	}
+
+	public void setReportMetrics(ReportMetrics reportMetrics) {
+		this.reportMetrics = reportMetrics;
+	}
 }
