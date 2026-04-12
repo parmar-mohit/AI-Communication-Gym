@@ -1,5 +1,6 @@
 package com.thinkschool.coach.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +22,12 @@ public class VideoService {
 	public String convertWebmToMp4(String sessionId) {
 		logger.info("Converting Session Video File from Webm to Mp4 for Session with SessionId : "+sessionId);
 		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";
+		
+		File webmFile = new File(webmFileName);
+		if( !webmFile.exists() ) {
+			return null;
+		}
+		
 		String mp4FileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".mp4";
 		
 		Path inputPath = Paths.get(webmFileName);
@@ -34,13 +41,15 @@ public class VideoService {
 		return mp4FileName;
 	}
 	
-	public void deleteSessionVideo(String sessionId) {
+	public void deleteSessionVideoAndTranscript(String sessionId) {
 		logger.info("Deleting Video File for Session with SessionId : "+sessionId);
 		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";
 		String mp4FileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".mp4";
+		String transcriptName = FileLocation.SESSION_TRANSCRIPT_PREFIX+"/session-"+sessionId+".txt";
 		
 		deleteFile(webmFileName);
 		deleteFile(mp4FileName);
+		deleteFile(transcriptName);
 	}
 	
 	private void deleteFile(String fileName) {

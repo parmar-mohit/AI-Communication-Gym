@@ -2,6 +2,7 @@
 logs/*
 videos/*
 transcript/*
+images/*
 .metadata/*
 backend/.settings/*
 backend/.classpath

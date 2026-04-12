@@ -17,3 +17,6 @@ The AI Communication Coach is a two-tier application built for low-latency, real
 ### 3. AWS Integrations
 - **Amazon Bedrock**: Serves as the brain of the communication coach. It handles large language model inference, evaluating the user's speech, and formulating a coherent conversational response in real-time. 
 - **Amazon S3**: Used for robust blob storage. The application securely uploads session videos and transcripts to designated buckets for archival and subsequent analysis.
+
+## Scheduled Tasks
+To prevent the server's local file system from running out of space, the backend executes a scheduled cronjob every day at `00:00` (midnight). This process cleans up any old local files (such as temporary logs, videos, and images) that have a creation or last modification date older than 24 hours. **Note**: This cleanup strictly targets files on local storage; files that are safely stored in Amazon S3 are unaffected and preserved.

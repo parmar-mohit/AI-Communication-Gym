@@ -13,6 +13,8 @@ public class FileLocation {
 	public static final String SYSTEM_PROMPT = "prompts/system_prompt.txt";
 	public static final String INTIAL_SESSION_AUDIO = "audio/session_start.wav";
 	public static final String USER_PROMPT_SESSION_START = "prompts/user_prompt_session_start.txt";
+	
 	public static final String SESSION_VIDEO_PREFIX = System.getenv("SESSION_VIDEO_PREFIX");
 	public static final String SESSION_TRANSCRIPT_PREFIX = System.getenv("SESSION_TRANSCRIPT_PREFIX");
+	public static final String SESSION_IMAGE_PREFIX = System.getenv("SESSION_IMAGE_PREFIX");
 }

@@ -37,8 +37,10 @@ Ensure the application can run successfully by creating an AWS user and setting 
    - `LOG_DIR`: log directory path where generated logs will be stored
    - `SESSION_TRANSCRIPT_PREFIX`: directory path where session transcripts will be stored
    - `SESSION_VIDEO_PREFIX`: directory where user session videos will be stored
+   - `SESSION_IMAGE_PREFIX`: directory where user session images will be stored
    - `S3_SESSION_VIDEO_BUCKET_ID`: id of the bucket where user videos will be stored
    - `S3_SESSION_TRANSCRIPT_BUCKET_ID`: id of bucket where session transcript will be stored
+   - `S3_SESSION_IMAGE_BUCKET_ID`: id of bucket where session transcript will be stored
 
 ### 2. Installation
 Navigate to the `backend` directory and build the project using Maven:
