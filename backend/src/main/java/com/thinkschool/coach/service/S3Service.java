@@ -3,14 +3,17 @@ package com.thinkschool.coach.service;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.thinkschool.coach.constants.FileLocation;
 
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -25,9 +28,10 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 public class S3Service {
 	private S3Client s3Client;
 	
-	private static final String SESSION_VIDEO_BUCKET = System.getenv("S3_SESSION_VIDEO_BUCKET_ID");
-	private static final String SESSION_TRANSCRIPT_BUCKET = System.getenv("S3_SESSION_TRANSCRIPT_BUCKET_ID");
+	public static final String SESSION_VIDEO_BUCKET = System.getenv("S3_SESSION_VIDEO_BUCKET_ID");
+	public static final String SESSION_TRANSCRIPT_BUCKET = System.getenv("S3_SESSION_TRANSCRIPT_BUCKET_ID");
 	public static final String SESSION_IMAGE_BUCKET = System.getenv("S3_SESSION_IMAGE_BUCKET_ID");
+	private static final String SESSION_REPORT_BUCKET = System.getenv("S3_SESSION_REPORT_BUCKET_ID");
 	
 	private static final Logger logger = LoggerFactory.getLogger(S3Service.class);
 	
@@ -38,7 +42,8 @@ public class S3Service {
                 .build();
 	}
 	
-	public void uploadSessionVideo(String fileName,String sessionId) {
+	@Async
+	public CompletableFuture<Void> uploadSessionVideo(String fileName,String sessionId) {
 		logger.info("Uploading Session Video to Bucket : "+sessionId);
 		PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(SESSION_VIDEO_BUCKET)
@@ -47,9 +52,11 @@ public class S3Service {
 
         s3Client.putObject(request, Paths.get(fileName));
         logger.info(fileName+" Uploaded to S3 Bucket");
+        return CompletableFuture.completedFuture(null);
 	}
 	
-	public void uploadSessionTranscript(String sessionId) {
+	@Async
+	public CompletableFuture<Void> uploadSessionTranscript(String sessionId) {
 		logger.info("Uploading Session Transcript to Bucket : "+sessionId);
 		
 		String fileName = FileLocation.SESSION_TRANSCRIPT_PREFIX+"/session-"+sessionId+".txt";
@@ -60,9 +67,12 @@ public class S3Service {
 
         s3Client.putObject(request, Paths.get(fileName));
         logger.info(fileName+" Uploaded to S3 Bucket");
+        
+        return CompletableFuture.completedFuture(null);
 	}
 	
-	public void uploadSessionImages(List<String> filePathList) {
+	@Async
+	public CompletableFuture<Void> uploadSessionImages(List<String> filePathList) {
 		logger.info("Uploading Session Images to Bucket");
 		for( String fileName : filePathList ) {
 			String[] pathSplit = fileName.split("/"); 
@@ -74,7 +84,9 @@ public class S3Service {
 	
 	        s3Client.putObject(request, Paths.get(fileName));
 	        logger.info(fileName+" Uploaded to S3 Bucket");
+	        
 		}
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	public List<String> getKeyForSessionImages(String sessionId){
@@ -130,5 +142,19 @@ public class S3Service {
 	        logger.error("Exception Occured : "+e.getMessage(),e);
 	        throw e;
 	    }
+	}
+	
+	@Async
+	public void uploadReport(byte[] report, String sessionId) {
+		 PutObjectRequest putRequest = PutObjectRequest.builder()
+	                .bucket(SESSION_REPORT_BUCKET)
+	                .key(sessionId)
+	                .contentType("application/pdf") // important
+	                .build();
+
+	        s3Client.putObject(
+	                putRequest,
+	                RequestBody.fromBytes(report)
+	        );
 	}
 }

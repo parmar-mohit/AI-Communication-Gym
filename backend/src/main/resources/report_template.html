@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        /* A4 Page Setup */
+        @page { size: A4; margin: 0; }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            margin: 0; 
+            background: #f8fafc; 
+            color: #1e293b; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Header Section */
+        .header { 
+            background: #0f172a; 
+            color: white; 
+            padding: 40px 50px; 
+            border-bottom: 6px solid #fbbf24; 
+        }
+        .score-box { 
+            float: right; 
+            background: #fbbf24; 
+            color: #0f172a; 
+            padding: 15px; 
+            border-radius: 12px; 
+            text-align: center; 
+            min-width: 90px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .score-total { 
+            font-size: 10px; 
+            border-top: 1px solid #0f172a; 
+            margin-top: 4px; 
+            padding-top: 4px; 
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .container { padding: 30px 50px; }
+        
+        /* Typography */
+        .section-title { 
+            color: #1e3a8a; 
+            border-left: 5px solid #fbbf24; 
+            padding-left: 15px; 
+            margin: 30px 0 15px 0; 
+            text-transform: uppercase; 
+            font-size: 14px; 
+            font-weight: 800; 
+            letter-spacing: 1px;
+        }
+
+        /* Layout Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            margin-bottom: 10px; 
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Metrics Display */
+        .metric-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #f1f5f9; 
+            font-size: 13px; 
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-value { font-weight: bold; color: #1e3a8a; }
+
+        .emotion-tag { 
+            display: inline-block; 
+            background: #f1f5f9; 
+            border: 1px solid #e2e8f0; 
+            padding: 5px 10px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            margin: 4px; 
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .analysis-text { 
+            font-size: 13px; 
+            line-height: 1.6; 
+            color: #334155;
+        }
+
+        /* Fixed Bullet List (No Overlap) */
+        .bullet-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0; 
+        }
+        .bullet-list li { 
+            margin-bottom: 14px; 
+            padding-left: 30px; 
+            position: relative; 
+            font-size: 13px;
+            line-height: 1.5;
+            display: block; 
+        }
+        .bullet-list li::before { 
+            content: "•"; 
+            color: #fbbf24; 
+            position: absolute; 
+            left: 5px; 
+            font-size: 24px;
+            top: -6px; /* Aligns bullet with the first line of text */
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="score-box">
+            <div style="font-size: 28px; font-weight: 900;" th:text="${report.score}">0</div>
+            <div class="score-total">SCORE / 100</div>
+        </div>
+        <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.5px;">Communication Analysis</h1>
+        <p style="margin: 8px 0 0 0; font-size: 18px; color: #fbbf24;">
+            Analysis for: <strong th:text="${userName}" style="color: white;">User Name</strong>
+        </p>
+        <p style="margin: 4px 0 0 0; opacity: 0.6; font-size: 11px; font-family: monospace;">
+            ID: <span th:text="${report.sessionId}"></span>
+        </p>
+    </div>
+
+    <div class="container">
+        <div class="section-title">Executive Performance Review</div>
+        <div class="card analysis-text" th:text="${report.overallPerformance}"></div>
+
+        <div class="grid">
+            <div>
+                <div class="section-title">Visual Indicators</div>
+                <div class="card">
+                    <div class="metric-row"><span>Eye Contact</span> <span class="metric-value" th:text="${#numbers.formatDecimal(report.reportMetrics.eyeContactPercentage, 1, 2) + '%'}"></span></div>
+                    <div class="metric-row"><span>Face Touching</span> <span class="metric-value" th:text="${#numbers.formatDecimal(report.reportMetrics.faceTouchPercentage, 1, 2) + '%'}"></span></div>
+                    <div class="metric-row"><span>Smile Frequency</span> <span class="metric-value" th:text="${#numbers.formatDecimal(report.reportMetrics.smilePercentage, 1, 2) + '%'}"></span></div>
+                    <div class="metric-row"><span>Distraction Level</span> <span class="metric-value" th:text="${#numbers.formatDecimal(report.reportMetrics.distractionPercentage, 1, 2) + '%'}"></span></div>
+                </div>
+            </div>
+            <div>
+                <div class="section-title">Emotional Mapping</div>
+                <div class="card">
+                    <div class="metric-row"><span>Dominant State</span> <span class="metric-value" th:text="${report.reportMetrics.dominantOverallEmotion}"></span></div>
+                    <div style="margin-top: 12px;">
+                        <div th:each="entry : ${report.reportMetrics.emotionBreakdown}" class="emotion-tag">
+                            <span th:text="${entry.key}"></span>: <span th:text="${#numbers.formatDecimal(entry.value, 1, 2) + '%'}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Vocal & Strategic Analysis</div>
+        <div class="grid">
+            <div class="card"><small style="text-transform: uppercase; color: #64748b; font-weight: bold;">Articulation</small><div class="analysis-text" th:text="${report.articulationAndClarity}"></div></div>
+            <div class="card"><small style="text-transform: uppercase; color: #64748b; font-weight: bold;">Pacing</small><div class="analysis-text" th:text="${report.pacing}"></div></div>
+            <div class="card"><small style="text-transform: uppercase; color: #64748b; font-weight: bold;">Filler Words</small><div class="analysis-text" th:text="${report.fillerWordAnalysis}"></div></div>
+            <div class="card"><small style="text-transform: uppercase; color: #64748b; font-weight: bold;">Tone & Energy</small><div class="analysis-text" th:text="${report.toneAndInflection}"></div></div>
+            <div class="card"><small style="text-transform: uppercase; color: #64748b; font-weight: bold;">Conciseness</small><div class="analysis-text" th:text="${report.conciseness}"></div></div>
+            <div class="card"><small style="text-transform: uppercase; color: #64748b; font-weight: bold;">Vocabulary Range</small><div class="analysis-text" th:text="${report.vocabularyRange}"></div></div>
+        </div>
+
+        <div class="section-title">Critical Feedback</div>
+        <div class="grid">
+            <div class="card" style="border-top: 4px solid #059669;">
+                <div style="color: #059669; font-weight: 800; margin-bottom: 15px; font-size: 12px; letter-spacing: 1px;">STRENGTHS</div>
+                <ul>
+                    <li th:each="s : ${report.strengths}" th:text="${s}"></li>
+                </ul>
+            </div>
+            <div class="card" style="border-top: 4px solid #dc2626;">
+                <div style="color: #dc2626; font-weight: 800; margin-bottom: 15px; font-size: 12px; letter-spacing: 1px;">WEAKNESSES</div>
+                <ul>
+                    <li th:each="w : ${report.weakness}" th:text="${w}"></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section-title">Actionable Insightss</div>
+        <div class="card" style="background: #fffbeb; border: 1px solid #fde68a; padding: 25px;">
+            <ul>
+                <li th:each="i : ${report.actionableInsights}" th:text="${i}"></li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            CONFIDENTIAL COMMUNICATION ANALYSIS &bull; GENERATED BY AI COACH
+        </div>
+    </div>
+</body>
+</html>

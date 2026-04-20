@@ -1,0 +1,18 @@
+Hi ${{name}},
+
+Thank you for taking the time to complete your recent interaction with our AI assistant.
+
+We’re pleased to share your personalized Communication Analysis Report, based on your 5-minute session. This report provides insights into how effectively you communicated, including areas such as clarity, structure, tone, and overall engagement.
+
+Inside the attached PDF, you’ll find:
+1.A breakdown of your communication strengths
+2. Key areas for improvement
+3. Behavioral and language insights
+4. Suggestions to enhance your future interactions
+
+This analysis is designed to help you better understand your communication style and support your growth over time.
+
+If you have any questions or would like a deeper review, feel free to reach out.
+
+Best regards,
+Team AI Insights

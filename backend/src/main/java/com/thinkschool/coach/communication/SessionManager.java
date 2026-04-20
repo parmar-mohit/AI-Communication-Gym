@@ -60,7 +60,7 @@ public class SessionManager implements InvokeModelWithBidirectionalStreamRespons
 
 	public void createConnection() {
 		InvokeModelWithBidirectionalStreamRequest request = InvokeModelWithBidirectionalStreamRequest.builder()
-                .modelId(Constants.MODEL_ID)
+                .modelId(Constants.SONIC_SPEECH_MODEL_ID)
                 .build();
 
         CompletableFuture<Void> completableFuture = bedrockClient.invokeModelWithBidirectionalStream(request, this.inputStream.getStream(), this);

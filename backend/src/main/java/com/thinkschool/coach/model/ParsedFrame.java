@@ -2,10 +2,12 @@ package com.thinkschool.coach.model;
 
 import java.util.List;
 
+import lombok.Data;
 import software.amazon.awssdk.services.rekognition.model.DetectFacesResponse;
 import software.amazon.awssdk.services.rekognition.model.Emotion;
 import software.amazon.awssdk.services.rekognition.model.FaceDetail;
 
+@Data
 public class ParsedFrame {
 	
 	//Face Detection
@@ -63,45 +65,4 @@ public class ParsedFrame {
     	
     	return frame;
     }
-
-	public boolean isFaceDetected() {
-		return isFaceDetected;
-	}
-
-	public void setFaceDetected(boolean isFaceDetected) {
-		this.isFaceDetected = isFaceDetected;
-	}
-
-	public double getHeadYaw() {
-		return headYaw;
-	}
-
-	public double getHeadPitch() {
-		return headPitch;
-	}
-
-	public double getPupilYaw() {
-		return pupilYaw;
-	}
-
-	public double getPupilPitch() {
-		return pupilPitch;
-	}
-
-	public boolean isSmiling() {
-		return isSmiling;
-	}
-
-	public boolean isFaceOccluded() {
-		return isFaceOccluded;
-	}
-
-	public double getFaceCenterX() {
-		return faceCenterX;
-	}
-
-	public String getDominantEmotion() {
-		return dominantEmotion;
-	}
-
 }

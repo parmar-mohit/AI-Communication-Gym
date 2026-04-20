@@ -1,20 +1,26 @@
 package com.thinkschool.coach.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import com.thinkschool.coach.dto.ReportResponse;
+import com.itextpdf.html2pdf.HtmlConverter;
+import com.thinkschool.coach.communication.NovaProModel;
+import com.thinkschool.coach.dto.ReportGenerationRequest;
+import com.thinkschool.coach.model.AnalysisReport;
 import com.thinkschool.coach.model.ParsedFrame;
 import com.thinkschool.coach.model.ReportMetrics;
 
@@ -23,51 +29,67 @@ public class ReportService {
 	
 	private S3Service s3Service;
 	private ImageService imageService;
+	private NovaProModel novaProModel;
 	
 	private static final double EYE_CONTACT_THRESHOLD = 0.15;
 	private static final double DISTRACTION_YAW_DELTA = 20.0; // Rapid head turns
 	private static final double SWAYING_MOVEMENT_THRESHOLD = 0.05;
 	
 	@Autowired
-	public ReportService(S3Service s3Service, ImageService imageService) {
+	public ReportService(S3Service s3Service, ImageService imageService,NovaProModel novaProModel) {
 		this.s3Service = s3Service;
 		this.imageService = imageService;
+		this.novaProModel = novaProModel;
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(ReportService.class);
 	
-	public ReportResponse getReport(String sessionId) {
-		logger.info("Getting Report for Session Id : "+sessionId);
+	@Async
+	public CompletableFuture<AnalysisReport> getReport(ReportGenerationRequest request) {
+		logger.info("Getting Report for Session Id : "+request.getSessionId());
 		
-		List<String> s3ObjectList = this.s3Service.getKeyForSessionImages(sessionId);
+		List<String> s3ObjectList = this.s3Service.getKeyForSessionImages(request.getSessionId());
 		List<ParsedFrame> frames = this.imageService.extractDataFromImages(s3ObjectList);
 		
 		ReportMetrics reportMetrics = this.processMetrics(frames);
 		
-		ReportResponse response = new ReportResponse();
-		response.setSessionId(sessionId);
+		AnalysisReport analysisReport = novaProModel.analyseVideo(request.getSessionId(), reportMetrics);
+		analysisReport.setSessionId(request.getSessionId());
+		analysisReport.setReportMetrics(reportMetrics);
 		
-		//Dummy Data
-		response.setStrengths(Arrays.asList("Strength 1","Strength 2","Strength 3"));
-		response.setWeakness(Arrays.asList("Weakness 1","Weakness 2","Weakness 3"));
-		response.setActionableInsigts(Arrays.asList("Insight 1","Insight 2","Insight 3"));
-		
-		response.setOverallPerformance("The communication analysis report indicates that the user maintains a generally consistent level of engagement across channels, with peak activity observed during weekday afternoons. Message patterns show a preference for concise and task-oriented interactions, with a moderate response time that suggests balanced availability rather than real-time responsiveness. Sentiment analysis reflects a predominantly neutral to positive tone, with occasional spikes in urgency during high-priority discussions. The user demonstrates strong participation in collaborative threads, frequently initiating follow-ups and clarifications, which contributes to improved overall communication efficiency and alignment within the team.");
-		
-		response.setReportMetrics(reportMetrics);
-		return response;
+		return CompletableFuture.completedFuture(analysisReport);
 	}
 	
-	public byte[] generatePdf(String sessionId) {
-		logger.info("Generating PDF Report for Session Id : "+sessionId);
-		try {
-			ClassPathResource resource = new ClassPathResource("report.pdf");
-	        return StreamUtils.copyToByteArray(resource.getInputStream());
-		} catch (IOException e) {
-			logger.error("Exception Occurred : "+e.getMessage());
-			logger.error("Exception Trace : ",e);
-		}
-		return null;
+	@Async
+	public CompletableFuture<byte[]> generatePdf(AnalysisReport analysisReport,String userName) {
+		logger.info("Generating PDF Report for Session Id : "+analysisReport.getSessionId());
+		
+		// 1. Setup Thymeleaf Resolver
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode("HTML");
+
+        TemplateEngine templateEngine = new TemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
+
+        // 2. Add Data to Thymeleaf Context
+        Context context = new Context();
+        context.setVariable("report", analysisReport);
+        context.setVariable("userName",userName);
+
+        // 3. Process Template to String
+        String htmlContent = templateEngine.process("report_template", context);
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            // Convert HTML directly into the memory stream
+            HtmlConverter.convertToPdf(htmlContent, baos);
+            
+            // Return the raw bytes 
+            return CompletableFuture.completedFuture(baos.toByteArray());
+        } catch (IOException e) {
+        	logger.error("Exception Occured : "+e.getMessage(),e);
+            throw new RuntimeException("Failed to generate PDF byte array", e);
+        }
 	}
 	
 	private ReportMetrics processMetrics(List<ParsedFrame> frames) {
@@ -119,12 +141,12 @@ public class ReportService {
 	}
 	
 	private double calculateSmilePercentage(List<ParsedFrame> frames) {
-        long smilingFrames = frames.stream().filter(f -> f.isFaceDetected() && f.isSmiling()).count();
+        long smilingFrames = frames.stream().filter(f -> f.isFaceDetected() && f.getIsSmiling()).count();
         return ((double) smilingFrames / frames.size()) * 100.0;
     }
 	
 	private double calculateFaceTouches(List<ParsedFrame> frames) {
-        long touchFrames = frames.stream().filter(f -> f.isFaceDetected() && f.isFaceOccluded()).count();
+        long touchFrames = frames.stream().filter(f -> f.isFaceDetected() && f.getIsFaceOccluded()).count();
         return ((double) touchFrames / frames.size()) * 100.0;
     }
 	

@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
@@ -20,7 +21,6 @@ public class VideoService {
 	private static final Logger logger = LoggerFactory.getLogger(VideoService.class);
 	
 	public String convertWebmToMp4(String sessionId) {
-		logger.info("Converting Session Video File from Webm to Mp4 for Session with SessionId : "+sessionId);
 		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";
 		
 		File webmFile = new File(webmFileName);
@@ -33,7 +33,7 @@ public class VideoService {
 		Path inputPath = Paths.get(webmFileName);
 		Path outputPath = Paths.get(mp4FileName);
 		
-		FFmpeg.atPath()
+ 		FFmpeg.atPath()
         .addInput(UrlInput.fromPath(inputPath))
         .addOutput(UrlOutput.toPath(outputPath))
         .execute();
@@ -41,6 +41,7 @@ public class VideoService {
 		return mp4FileName;
 	}
 	
+	@Async
 	public void deleteSessionVideoAndTranscript(String sessionId) {
 		logger.info("Deleting Video File for Session with SessionId : "+sessionId);
 		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";

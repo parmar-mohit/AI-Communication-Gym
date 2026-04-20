@@ -10,9 +10,11 @@ public class FileLocation {
 	public static final String AUDIO_INPUT_CONTENT = "events/audio_input_content.json";
 	public static final String PROMPT_END_EVENT = "events/prompt_end_event.json";
 	public static final String SESSION_END_EVENT = "events/session_end_event.json";
-	public static final String SYSTEM_PROMPT = "prompts/system_prompt.txt";
+	public static final String SYSTEM_PROMPT = "prompts/system_prompt_sonic.txt";
 	public static final String INTIAL_SESSION_AUDIO = "audio/session_start.wav";
 	public static final String USER_PROMPT_SESSION_START = "prompts/user_prompt_session_start.txt";
+	public static final String INSTRUCTION_PROMPT = "prompts/instruction_prompt_nova.txt";
+	public static final String MAIL_CONTENT = "mail_content.txt";
 	
 	public static final String SESSION_VIDEO_PREFIX = System.getenv("SESSION_VIDEO_PREFIX");
 	public static final String SESSION_TRANSCRIPT_PREFIX = System.getenv("SESSION_TRANSCRIPT_PREFIX");

@@ -41,6 +41,9 @@ Ensure the application can run successfully by creating an AWS user and setting 
    - `S3_SESSION_VIDEO_BUCKET_ID`: id of the bucket where user videos will be stored
    - `S3_SESSION_TRANSCRIPT_BUCKET_ID`: id of bucket where session transcript will be stored
    - `S3_SESSION_IMAGE_BUCKET_ID`: id of bucket where session transcript will be stored
+   - `S3_SESSION_REPORT_BUCKET_ID` : ID of Bucket where generated report will be stored
+   - `EMAIL_ID` : Gmail Id through which email will be sent to user after generating report
+   - `EMAIL_PASSWORD` : Password of mentioned gmail id
 
 ### 2. Installation
 Navigate to the `backend` directory and build the project using Maven:
