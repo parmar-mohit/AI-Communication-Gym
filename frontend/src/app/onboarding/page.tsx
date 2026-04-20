@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { APP_CONFIG } from '@/constants/config';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -24,7 +25,6 @@ export default function OnboardingPage() {
   }, [stream]);
 
   useEffect(() => {
-    // Prevent hydration mismatch by setting the calculated value after mount
     setSessionMinutes(Math.floor(APP_CONFIG.sessionDurationSeconds / 60));
   }, []);
 
@@ -44,14 +44,14 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/30">
       <header className="h-20 border-b bg-white/80 backdrop-blur-md flex items-center px-12 justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+        <Link href="/onboarding" className="flex items-center gap-3 group transition-opacity hover:opacity-80">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h1 className="font-headline font-bold text-xl tracking-tight text-slate-900">
-            Think School <span className="text-primary/70 font-medium">Gym</span>
+            AI Communication <span className="text-primary/70 font-medium">Gym</span>
           </h1>
-        </div>
+        </Link>
       </header>
       
       <main className="flex-1 max-w-7xl mx-auto w-full px-12 py-16 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">

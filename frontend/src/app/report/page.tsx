@@ -1,248 +1,209 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Download, Trophy, Lightbulb, Activity, Target, RefreshCw, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { ShieldCheck, Loader2, CheckCircle2, Mail, User, Send, Home } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useApp } from '@/context/AppContext';
 import { APP_CONFIG } from '@/constants/config';
+import { useApp } from '@/context/AppContext';
 
-interface ReportData {
-  session: string;
-  strengths: string[];
-  weakness: string[];
-  'actionable-insights': string[];
-  'overall-performance': string;
-}
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function ReportPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('sessionId');
-  const [report, setReport] = useState<ReportData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const { setSessionId } = useApp();
-  
-  // Guard to prevent duplicate fetches
-  const fetchedSessionIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      if (!sessionId || fetchedSessionIdRef.current === sessionId) {
-        return;
-      }
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+    },
+  });
 
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${APP_CONFIG.apiBaseUrl}/session-report?sessionId=${sessionId}`, {
-          headers: { 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) throw new Error('Failed to fetch report');
-        
-        const data = await response.json();
-        setReport(data);
-        fetchedSessionIdRef.current = sessionId;
-      } catch (error) {
-        toast({ 
-          variant: "destructive", 
-          title: "Assessment Error", 
-          description: "Could not retrieve your session report from the server." 
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (sessionId) {
-      fetchReport();
-    } else {
-      setIsLoading(false);
-    }
-  }, [sessionId, toast]);
-
-  const handleDownload = async () => {
-    if (!sessionId) return;
-    setIsDownloading(true);
-    try {
-      const response = await fetch(`${APP_CONFIG.apiBaseUrl}/session-report?sessionId=${sessionId}`, {
-        headers: { 'Accept': 'application/pdf' }
+  async function onSubmit(values: FormValues) {
+    if (!sessionId) {
+      toast({
+        variant: "destructive",
+        title: "Session Error",
+        description: "No active session ID found. Please restart your assessment."
       });
-      if (!response.ok) throw new Error('Download failed');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Communication_Report_${sessionId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      toast({ title: "Success", description: "Your PDF report has been downloaded." });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${APP_CONFIG.apiBaseUrl}/session-report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          userName: values.name,
+          userEmail: values.email,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Server communication failed.");
+      
+      const data = await response.json();
+
+      if (data.status === "Success") {
+        setIsSubmitted(true);
+        setSessionId(null);
+        // Automatic redirection removed as per user request
+      } else {
+        throw new Error(data.message || "Failed to submit report request.");
+      }
     } catch (error) {
-      toast({ 
-        variant: "destructive", 
-        title: "Download Error", 
-        description: "Could not generate PDF report." 
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: "There was an error processing your request. Please try again."
       });
     } finally {
-      setIsDownloading(false);
+      setIsSubmitting(false);
     }
-  };
-
-  const onRestart = () => {
-    setSessionId(null);
-    router.push('/onboarding');
-  };
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/50">
       <header className="h-20 border-b bg-white flex items-center px-12 justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+        <Link href="/onboarding" className="flex items-center gap-3 group transition-opacity hover:opacity-80">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h1 className="font-headline font-bold text-xl tracking-tight text-slate-900">
-            Think School <span className="text-primary/70 font-medium">Gym</span>
+            AI Communication <span className="text-primary/70 font-medium">Gym</span>
           </h1>
-        </div>
-        <Button variant="ghost" onClick={onRestart} className="gap-2 text-slate-500 hover:text-slate-900">
-          <ChevronLeft className="w-4 h-4" />
-          Back to Home
+        </Link>
+        <Button variant="ghost" asChild className="gap-2 font-bold text-slate-600">
+          <Link href="/onboarding">
+            <Home className="w-4 h-4" />
+            Home
+          </Link>
         </Button>
       </header>
 
-      <main className="flex-1 overflow-auto p-12">
-        <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-widest border border-primary/10">
-                Official Assessment Report
+      <main className="flex-1 flex items-center justify-center p-6">
+        <div className="max-w-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {!isSubmitted ? (
+            <Card className="border-0 shadow-2xl shadow-slate-200/50 rounded-[2rem] overflow-hidden bg-white">
+              <div className="h-2 bg-gradient-to-r from-primary to-primary/40" />
+              <CardHeader className="p-10 pb-2 text-center">
+                <div className="mx-auto w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary mb-6">
+                  <Mail className="w-8 h-8" />
+                </div>
+                <CardTitle className="text-3xl font-extrabold text-slate-900 tracking-tight">Receive Your Results</CardTitle>
+                <CardDescription className="text-slate-500 text-lg font-medium mt-2">
+                  Enter your details to receive your comprehensive AI-driven communication analysis via email.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-10 pt-8">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 font-bold text-sm uppercase tracking-wider">Full Name</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                              <Input 
+                                placeholder="John Doe" 
+                                {...field} 
+                                className="pl-12 h-14 rounded-xl border-slate-200 focus:ring-primary focus:border-primary text-lg"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-slate-700 font-bold text-sm uppercase tracking-wider">Email Address</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                              <Input 
+                                placeholder="john@example.com" 
+                                type="email"
+                                {...field} 
+                                className="pl-12 h-14 rounded-xl border-slate-200 focus:ring-primary focus:border-primary text-lg"
+                              />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="space-y-4 pt-2">
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full h-16 rounded-full text-lg font-bold bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 transition-all hover:scale-[1.01] active:scale-[0.98] gap-3"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            Request Detailed Report
+                            <Send className="w-5 h-5" />
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="outline" asChild className="w-full h-14 rounded-full font-bold border-2 hover:bg-slate-50 transition-all">
+                        <Link href="/onboarding">Cancel and Return Home</Link>
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center space-y-8 py-12">
+              <div className="mx-auto w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-inner border border-emerald-100">
+                <CheckCircle2 className="w-12 h-12" />
               </div>
-              <h2 className="text-4xl font-headline font-extrabold text-slate-900 tracking-tight">Performance Summary</h2>
-              <p className="text-slate-500 font-medium">Session ID: <span className="font-mono text-primary/80">{sessionId || 'N/A'}</span></p>
-            </div>
-            <Button 
-              onClick={handleDownload}
-              disabled={!sessionId || isDownloading}
-              className="gap-3 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 h-14 px-8 rounded-full font-bold"
-            >
-              {isDownloading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-              Download Detailed Analysis
-            </Button>
-          </div>
-
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-6">
-              <div className="relative">
-                <div className="w-16 h-16 rounded-full border-4 border-primary/10 border-t-primary animate-spin" />
+              <div className="space-y-4">
+                <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">Report Requested!</h2>
+                <p className="text-xl text-slate-600 font-medium leading-relaxed max-w-md mx-auto">
+                  Your communication assessment is being generated and will be delivered to your inbox shortly.
+                </p>
               </div>
-              <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-xs">Synthesizing Results...</p>
-            </div>
-          ) : report ? (
-            <div className="grid gap-8">
-              <Card className="border-0 shadow-xl shadow-slate-200/50 rounded-[2rem] overflow-hidden bg-white">
-                <div className="h-2 bg-gradient-to-r from-primary to-primary/40" />
-                <CardContent className="p-10 space-y-6">
-                  <div className="flex items-center gap-5">
-                    <div className="p-4 bg-primary/5 rounded-2xl text-primary border border-primary/10">
-                      <Trophy className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">Executive Summary</h3>
-                      <p className="text-slate-400 text-sm font-medium">Holistic performance review</p>
-                    </div>
-                  </div>
-                  <p className="text-slate-600 leading-relaxed text-xl font-medium italic">
-                    "{report['overall-performance']}"
-                  </p>
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="border-0 shadow-lg shadow-slate-200/50 rounded-[2rem] bg-white group hover:shadow-2xl transition-all duration-500">
-                  <CardContent className="p-10">
-                    <div className="flex items-center gap-5 mb-8">
-                      <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600 border border-emerald-100">
-                        <Target className="w-6 h-6" />
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900">Key Strengths</h3>
-                    </div>
-                    <ul className="space-y-5">
-                      {report.strengths.map((s, i) => (
-                        <li key={i} className="flex gap-4 items-start text-slate-600">
-                          <div className="w-2 h-2 rounded-full bg-emerald-400 mt-2.5 shrink-0" />
-                          <span className="text-base font-medium leading-snug">{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg shadow-slate-200/50 rounded-[2rem] bg-white group hover:shadow-2xl transition-all duration-500">
-                  <CardContent className="p-10">
-                    <div className="flex items-center gap-5 mb-8">
-                      <div className="p-4 bg-amber-50 rounded-2xl text-amber-600 border border-amber-100">
-                        <Lightbulb className="w-6 h-6" />
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900">Refinement Areas</h3>
-                    </div>
-                    <ul className="space-y-5">
-                      {report.weakness.map((w, i) => (
-                        <li key={i} className="flex gap-4 items-start text-slate-600">
-                          <div className="w-2 h-2 rounded-full bg-amber-400 mt-2.5 shrink-0" />
-                          <span className="text-base font-medium leading-snug">{w}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card className="border-0 shadow-2xl shadow-primary/10 rounded-[2rem] bg-slate-900 text-white">
-                <CardContent className="p-12">
-                  <div className="flex items-center gap-5 mb-10">
-                    <div className="p-4 bg-white/5 rounded-2xl text-primary-foreground border border-white/10">
-                      <Activity className="w-8 h-8" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold tracking-tight">Personalized Action Plan</h3>
-                      <p className="text-slate-400 text-sm font-medium">Strategic steps for rapid improvement</p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {report['actionable-insights'].map((insight, i) => (
-                      <div key={i} className="bg-white/5 border border-white/10 p-8 rounded-[1.5rem] hover:bg-white/10 transition-colors duration-300">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary-foreground font-bold text-xs mb-4">
-                          {i + 1}
-                        </div>
-                        <p className="text-lg leading-relaxed text-slate-200 font-medium">
-                          {insight}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="flex justify-center pt-12 pb-20">
-                <Button 
-                  variant="outline" 
-                  onClick={onRestart}
-                  className="h-16 px-12 border-2 border-slate-200 text-slate-900 font-bold hover:bg-slate-50 rounded-full text-lg shadow-sm active:scale-95 transition-all"
-                >
-                  Return to Dashboard
+              <div className="pt-8">
+                <Button variant="default" asChild className="h-14 px-10 rounded-full font-bold shadow-lg shadow-primary/20">
+                  <Link href="/onboarding">Return Home</Link>
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-20 bg-white rounded-[2rem] shadow-xl border border-slate-100 max-w-lg mx-auto">
-              <p className="text-slate-500 mb-8 text-lg font-medium">Session data unavailable.</p>
-              <Button onClick={onRestart} className="rounded-full px-10">Restart Setup</Button>
             </div>
           )}
         </div>

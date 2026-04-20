@@ -1,8 +1,8 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { APP_CONFIG } from '@/constants/config';
 import { Button } from '@/components/ui/button';
 import { StopCircle, Timer, ShieldCheck } from 'lucide-react';
@@ -70,17 +70,14 @@ export default function SessionPage() {
   }, []);
 
   useEffect(() => {
-    // Ensure all prerequisites are met and nodes belong to the same context
     if (!stream || !ws || !audioContext || !recordingMixer || !recordingStream) return;
     if (recordingMixer.context !== audioContext) return;
 
     if (videoRef.current) videoRef.current.srcObject = stream;
 
-    // Connect user mic to the recording mixer
     const userMicSource = audioContext.createMediaStreamSource(stream);
     userMicSource.connect(recordingMixer);
 
-    // Combine camera video with mixed audio for recording
     const videoTrack = stream.getVideoTracks()[0];
     const mixedAudioTrack = recordingStream.getAudioTracks()[0];
     
@@ -105,7 +102,6 @@ export default function SessionPage() {
     };
     mediaRecorder.start(1000);
 
-    // Independent raw PCM audio stream for transcript/analysis
     const processor = audioContext.createScriptProcessor(4096, 1, 1);
     processor.onaudioprocess = (e) => {
       if (ws.readyState !== WebSocket.OPEN) return;
@@ -146,14 +142,14 @@ export default function SessionPage() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 overflow-hidden">
       <header className="h-20 border-b bg-white/80 backdrop-blur-md flex items-center px-8 justify-between z-20 shrink-0">
-        <div className="flex items-center gap-3">
+        <Link href="/onboarding" className="flex items-center gap-3 group transition-opacity hover:opacity-80">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <h1 className="font-headline font-bold text-xl tracking-tight text-slate-900">
-            Communication <span className="text-primary/70 font-medium">Session</span>
+            AI Communication <span className="text-primary/70 font-medium">Session</span>
           </h1>
-        </div>
+        </Link>
         
         <div className="flex items-center gap-4">
           <div className={`flex items-center gap-3 px-5 py-2.5 rounded-full font-mono font-bold text-lg shadow-sm border ${timeLeft < 60 ? 'bg-destructive/10 text-destructive border-destructive/20 animate-pulse' : 'bg-white text-slate-900 border-slate-200'}`}>

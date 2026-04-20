@@ -50,26 +50,26 @@ export const SessionTranscript: React.FC<SessionTranscriptProps> = ({ messages }
                 key={idx}
                 className={cn(
                   "flex gap-4 max-w-[90%] animate-in fade-in slide-in-from-bottom-4 duration-500",
-                  isUser ? "mr-auto flex-row" : "ml-auto flex-row-reverse"
+                  isUser ? "ml-auto flex-row-reverse" : "mr-auto flex-row"
                 )}
               >
                 <div className={cn(
                   "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border",
-                  isUser ? "bg-white text-slate-400" : "bg-primary text-white border-primary"
+                  isUser ? "bg-slate-900 text-white border-slate-800" : "bg-white text-slate-400"
                 )}>
                   {isUser ? <User className="w-5 h-5" /> : <Bot className="w-5 h-5" />}
                 </div>
                 
                 <div className={cn(
                   "flex flex-col gap-2",
-                  isUser ? "items-start" : "items-end"
+                  isUser ? "items-end text-right" : "items-start text-left"
                 )}>
                   <div
                     className={cn(
                       "px-5 py-4 rounded-[1.5rem] text-sm leading-relaxed font-medium shadow-sm border",
                       isUser 
-                        ? "bg-white text-slate-600 border-slate-100 rounded-tl-none" 
-                        : "bg-slate-900 text-white border-slate-800 rounded-tr-none"
+                        ? "bg-slate-900 text-white border-slate-800 rounded-tr-none" 
+                        : "bg-white text-slate-600 border-slate-100 rounded-tl-none"
                     )}
                   >
                     {msg.text}
