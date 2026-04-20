@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.github.kokorin.jaffree.ffmpeg.FFmpeg;
@@ -20,14 +19,15 @@ import com.thinkschool.coach.constants.FileLocation;
 public class VideoService {
 	private static final Logger logger = LoggerFactory.getLogger(VideoService.class);
 	
-	public String convertWebmToMp4(String sessionId) {
+	public boolean doesVideoExist(String sessionId) {
 		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";
 		
 		File webmFile = new File(webmFileName);
-		if( !webmFile.exists() ) {
-			return null;
-		}
-		
+		return webmFile.exists();
+	}
+	
+	public String convertWebmToMp4(String sessionId) {
+		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";
 		String mp4FileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".mp4";
 		
 		Path inputPath = Paths.get(webmFileName);
@@ -41,15 +41,17 @@ public class VideoService {
 		return mp4FileName;
 	}
 	
-	@Async
-	public void deleteSessionVideoAndTranscript(String sessionId) {
+	public void deleteSessionVideo(String sessionId) {
 		logger.info("Deleting Video File for Session with SessionId : "+sessionId);
 		String webmFileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".webm";
 		String mp4FileName = FileLocation.SESSION_VIDEO_PREFIX+"/session-"+sessionId+".mp4";
-		String transcriptName = FileLocation.SESSION_TRANSCRIPT_PREFIX+"/session-"+sessionId+".txt";
 		
 		deleteFile(webmFileName);
 		deleteFile(mp4FileName);
+	}
+	
+	public void deleteSessionTranscript(String sessionId) {
+		String transcriptName = FileLocation.SESSION_TRANSCRIPT_PREFIX+"/session-"+sessionId+".txt";
 		deleteFile(transcriptName);
 	}
 	

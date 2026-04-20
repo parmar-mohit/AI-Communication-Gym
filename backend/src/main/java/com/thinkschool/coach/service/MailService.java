@@ -1,11 +1,9 @@
 package com.thinkschool.coach.service;
 
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.thinkschool.coach.constants.FileLocation;
@@ -31,8 +29,7 @@ public class MailService {
 	private static final String fromEmail = System.getenv("EMAIL_ID");
 	private static final String password = System.getenv("EMAIL_PASSWORD");
 	
-	@Async
-	public CompletableFuture<Void> sendMail(String userName,String toEmail, byte[] report) {
+	public void sendMail(String userName,String toEmail, byte[] report) {
 		 // SMTP config
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
@@ -85,7 +82,5 @@ public class MailService {
         } catch (Exception e) {
         	logger.error("Exception Occured : "+e.getMessage(),e);
         }
-        
-        return CompletableFuture.completedFuture(null);
 	}
 }

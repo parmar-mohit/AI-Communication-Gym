@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -30,22 +29,45 @@ public class ReportService {
 	private S3Service s3Service;
 	private ImageService imageService;
 	private NovaProModel novaProModel;
+	private VideoService videoService;
+	private MailService mailService;
 	
-	private static final double EYE_CONTACT_THRESHOLD = 0.15;
+	private static final double EYE_CONTACT_THRESHOLD = 10;
 	private static final double DISTRACTION_YAW_DELTA = 20.0; // Rapid head turns
 	private static final double SWAYING_MOVEMENT_THRESHOLD = 0.05;
 	
 	@Autowired
-	public ReportService(S3Service s3Service, ImageService imageService,NovaProModel novaProModel) {
+	public ReportService(VideoService videoService, S3Service s3Service, ImageService imageService,NovaProModel novaProModel, MailService mailService) {
+		this.videoService = videoService;
 		this.s3Service = s3Service;
 		this.imageService = imageService;
 		this.novaProModel = novaProModel;
+		this.mailService = mailService;
 	}
 
 	private static final Logger logger = LoggerFactory.getLogger(ReportService.class);
 	
 	@Async
-	public CompletableFuture<AnalysisReport> getReport(ReportGenerationRequest request) {
+	public void generateAndSendReport(ReportGenerationRequest request) {
+		if( this.videoService.doesVideoExist(request.getSessionId()) ) {
+			String mp4File = this.videoService.convertWebmToMp4(request.getSessionId());
+			List<String> imagePathList = this.imageService.extractImagesFromVideo(mp4File, request.getSessionId());
+			
+			this.s3Service.uploadSessionImages(imagePathList);
+			this.s3Service.uploadSessionVideo(mp4File, request.getSessionId());
+			this.s3Service.uploadSessionTranscript(request.getSessionId());
+			this.imageService.deleteImages(imagePathList);
+			this.videoService.deleteSessionVideo(request.getSessionId());
+			this.videoService.deleteSessionTranscript(request.getSessionId());
+		}
+		
+		AnalysisReport analysisReport = this.getReport(request);
+		byte[] reportPdf = this.generatePdf(analysisReport, request.getUserName());
+		this.mailService.sendMail(request.getUserName(), request.getUserEmail(), reportPdf);
+		this.s3Service.uploadReport(reportPdf, request.getSessionId());
+	}
+	
+	private AnalysisReport getReport(ReportGenerationRequest request) {
 		logger.info("Getting Report for Session Id : "+request.getSessionId());
 		
 		List<String> s3ObjectList = this.s3Service.getKeyForSessionImages(request.getSessionId());
@@ -57,11 +79,10 @@ public class ReportService {
 		analysisReport.setSessionId(request.getSessionId());
 		analysisReport.setReportMetrics(reportMetrics);
 		
-		return CompletableFuture.completedFuture(analysisReport);
+		return analysisReport;
 	}
 	
-	@Async
-	public CompletableFuture<byte[]> generatePdf(AnalysisReport analysisReport,String userName) {
+	private byte[] generatePdf(AnalysisReport analysisReport,String userName) {
 		logger.info("Generating PDF Report for Session Id : "+analysisReport.getSessionId());
 		
 		// 1. Setup Thymeleaf Resolver
@@ -85,7 +106,7 @@ public class ReportService {
             HtmlConverter.convertToPdf(htmlContent, baos);
             
             // Return the raw bytes 
-            return CompletableFuture.completedFuture(baos.toByteArray());
+            return baos.toByteArray();
         } catch (IOException e) {
         	logger.error("Exception Occured : "+e.getMessage(),e);
             throw new RuntimeException("Failed to generate PDF byte array", e);

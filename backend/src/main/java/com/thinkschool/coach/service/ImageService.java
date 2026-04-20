@@ -43,6 +43,7 @@ public class ImageService {
                 .build();
 	}
 	
+	
 	public List<String> extractImagesFromVideo(String videoFilePath,String sessionId) {
 	    
 	    // 1. Try-With-Resources guarantees these are completely destroyed when the method ends
@@ -65,7 +66,7 @@ public class ImageService {
 
 	            if (currentTime >= nextCaptureTime) {
 	            	
-	            	String newImagePath = FileLocation.SESSION_IMAGE_PREFIX + "/session-"+sessionId + "-" + String.format("frame_%04d.png", frameNumber++);
+	            	String newImagePath = FileLocation.SESSION_IMAGE_PREFIX + "session-"+sessionId + "-" + String.format("frame_%04d.png", frameNumber++);
 	            	imagePathList.add(newImagePath);
 	                // 2. We use the Java2DFrameConverter directly to save the image. 
 	                // We completely removed the unused OpenCV 'Mat' conversion to save memory.

@@ -3,11 +3,9 @@ package com.thinkschool.coach.service;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.thinkschool.coach.constants.FileLocation;
@@ -42,8 +40,7 @@ public class S3Service {
                 .build();
 	}
 	
-	@Async
-	public CompletableFuture<Void> uploadSessionVideo(String fileName,String sessionId) {
+	public void uploadSessionVideo(String fileName,String sessionId) {
 		logger.info("Uploading Session Video to Bucket : "+sessionId);
 		PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(SESSION_VIDEO_BUCKET)
@@ -52,11 +49,9 @@ public class S3Service {
 
         s3Client.putObject(request, Paths.get(fileName));
         logger.info(fileName+" Uploaded to S3 Bucket");
-        return CompletableFuture.completedFuture(null);
 	}
 	
-	@Async
-	public CompletableFuture<Void> uploadSessionTranscript(String sessionId) {
+	public void uploadSessionTranscript(String sessionId) {
 		logger.info("Uploading Session Transcript to Bucket : "+sessionId);
 		
 		String fileName = FileLocation.SESSION_TRANSCRIPT_PREFIX+"/session-"+sessionId+".txt";
@@ -67,12 +62,9 @@ public class S3Service {
 
         s3Client.putObject(request, Paths.get(fileName));
         logger.info(fileName+" Uploaded to S3 Bucket");
-        
-        return CompletableFuture.completedFuture(null);
 	}
 	
-	@Async
-	public CompletableFuture<Void> uploadSessionImages(List<String> filePathList) {
+	public void uploadSessionImages(List<String> filePathList) {
 		logger.info("Uploading Session Images to Bucket");
 		for( String fileName : filePathList ) {
 			String[] pathSplit = fileName.split("/"); 
@@ -86,7 +78,6 @@ public class S3Service {
 	        logger.info(fileName+" Uploaded to S3 Bucket");
 	        
 		}
-		return CompletableFuture.completedFuture(null);
 	}
 	
 	public List<String> getKeyForSessionImages(String sessionId){
@@ -144,7 +135,6 @@ public class S3Service {
 	    }
 	}
 	
-	@Async
 	public void uploadReport(byte[] report, String sessionId) {
 		 PutObjectRequest putRequest = PutObjectRequest.builder()
 	                .bucket(SESSION_REPORT_BUCKET)
